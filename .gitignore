@@ -37,3 +37,6 @@ replay_pid*
 
 # VS Code
 .vscode/
+
+
+.env
