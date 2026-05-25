@@ -1,4 +1,4 @@
-package com.swissroute.swissroute;
+package com.swissroute.swissroute.config;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
