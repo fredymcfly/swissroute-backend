@@ -1,5 +1,10 @@
 package com.swissroute.swissroute.controller;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swissroute.swissroute.dto.RegistroRequest;
 import com.swissroute.swissroute.service.UsuarioService;
@@ -10,11 +15,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(UsuarioController.class)
 class UsuarioControllerTest {
@@ -42,16 +42,26 @@ class UsuarioControllerTest {
     @Test
     void registro_Success_ReturnsCreatedUsuarioResponse() throws Exception {
         // Given
-        when(usuarioService.registro(any(RegistroRequest.class)))
-                .thenReturn(new com.swissroute.swissroute.dto.UsuarioResponse(1L, "Juan Pérez", "juan.perez@example.com", "Zurich", null));
+        when(usuarioService.registro(any(RegistroRequest.class))).thenReturn(
+            new com.swissroute.swissroute.dto.UsuarioResponse(
+                1L,
+                "Juan Pérez",
+                "juan.perez@example.com",
+                "Zurich",
+                null
+            )
+        );
 
         // When & Then
-        mockMvc.perform(post("/api/usuarios/registro")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(validRequest)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.nombre").value("Juan Pérez"))
-                .andExpect(jsonPath("$.email").value("juan.perez@example.com"));
+        mockMvc
+            .perform(
+                post("/api/usuarios/registro")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(validRequest))
+            )
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.nombre").value("Juan Pérez"))
+            .andExpect(jsonPath("$.email").value("juan.perez@example.com"));
     }
 
     @Test
@@ -60,10 +70,13 @@ class UsuarioControllerTest {
         validRequest.setEmail("invalid-email");
 
         // When & Then
-        mockMvc.perform(post("/api/usuarios/registro")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(validRequest)))
-                .andExpect(status().isBadRequest());
+        mockMvc
+            .perform(
+                post("/api/usuarios/registro")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(validRequest))
+            )
+            .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -72,9 +85,12 @@ class UsuarioControllerTest {
         validRequest.setNombre(null);
 
         // When & Then
-        mockMvc.perform(post("/api/usuarios/registro")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(validRequest)))
-                .andExpect(status().isBadRequest());
+        mockMvc
+            .perform(
+                post("/api/usuarios/registro")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(validRequest))
+            )
+            .andExpect(status().isBadRequest());
     }
 }
