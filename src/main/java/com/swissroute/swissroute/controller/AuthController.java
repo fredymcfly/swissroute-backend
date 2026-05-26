@@ -4,14 +4,15 @@ import com.swissroute.swissroute.dto.LoginRequest;
 import com.swissroute.swissroute.dto.LoginResponse;
 import com.swissroute.swissroute.service.impl.CustomUserDetailsService;
 import com.swissroute.swissroute.util.JwtUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-
-import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/usuarios")
@@ -22,27 +23,63 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService userDetailsService;
 
-    public AuthController(AuthenticationManager authenticationManager, 
-                         JwtUtil jwtUtil,
-                         CustomUserDetailsService userDetailsService) {
+    public AuthController(
+        AuthenticationManager authenticationManager,
+        JwtUtil jwtUtil,
+        CustomUserDetailsService userDetailsService
+    ) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest) {
+    @Operation(
+        summary = "Login de usuario",
+        description = "Permite autenticar un usuario y obtener un token JWT"
+    )
+    public ResponseEntity<?> login(
+        @Valid @RequestBody LoginRequest loginRequest
+    ) {
         try {
+            System.out.println("=== LOGIN START ===");
+
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
+                new UsernamePasswordAuthenticationToken(
+                    loginRequest.getEmail(),
+                    loginRequest.getPassword()
+                )
             );
+
+            System.out.println("=== AUTH OK ===");
+
+            UserDetails userDetails = userDetailsService.loadUserByUsername(
+                loginRequest.getEmail()
+            );
+
+            if (userDetails == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    "Usuario no encontrado"
+                );
+            }
+
+            System.out.println("=== USER DETAILS OK ===");
+
+            String jwt = jwtUtil.generateToken(userDetails);
+
+            System.out.println("=== JWT GENERATED ===");
+
+            return ResponseEntity.ok(new LoginResponse(jwt));
         } catch (BadCredentialsException e) {
-            return ResponseEntity.status(401).body("Credenciales inválidas");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                "Credenciales inválidas"
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                "Error interno: " + e.getMessage()
+            );
         }
-
-        UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getEmail());
-        String jwt = jwtUtil.generateToken(userDetails);
-
-        return ResponseEntity.ok(new LoginResponse(jwt));
     }
 }
