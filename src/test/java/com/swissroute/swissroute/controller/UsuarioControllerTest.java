@@ -6,24 +6,31 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.swissroute.swissroute.config.JwtAuthenticationFilter;
 import com.swissroute.swissroute.dto.RegistroRequest;
+import com.swissroute.swissroute.dto.UsuarioResponse;
 import com.swissroute.swissroute.service.UsuarioService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(UsuarioController.class)
+@WebMvcTest(controllers = UsuarioController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class UsuarioControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockitoBean
+    @MockBean
     private UsuarioService usuarioService;
+
+    @MockBean
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -41,9 +48,8 @@ class UsuarioControllerTest {
 
     @Test
     void registro_Success_ReturnsCreatedUsuarioResponse() throws Exception {
-        // Given
         when(usuarioService.registro(any(RegistroRequest.class))).thenReturn(
-            new com.swissroute.swissroute.dto.UsuarioResponse(
+            new UsuarioResponse(
                 1L,
                 "Juan Pérez",
                 "juan.perez@example.com",
@@ -52,7 +58,6 @@ class UsuarioControllerTest {
             )
         );
 
-        // When & Then
         mockMvc
             .perform(
                 post("/api/usuarios/registro")
@@ -66,10 +71,8 @@ class UsuarioControllerTest {
 
     @Test
     void registro_InvalidEmail_ReturnsBadRequest() throws Exception {
-        // Given
         validRequest.setEmail("invalid-email");
 
-        // When & Then
         mockMvc
             .perform(
                 post("/api/usuarios/registro")
@@ -81,10 +84,8 @@ class UsuarioControllerTest {
 
     @Test
     void registro_MissingFields_ReturnsBadRequest() throws Exception {
-        // Given
         validRequest.setNombre(null);
 
-        // When & Then
         mockMvc
             .perform(
                 post("/api/usuarios/registro")

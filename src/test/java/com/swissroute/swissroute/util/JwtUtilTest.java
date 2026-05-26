@@ -1,27 +1,68 @@
 package com.swissroute.swissroute.util;
 
-import com.swissroute.swissroute.service.impl.CustomUserDetailsService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.core.userdetails.UserDetails;
-
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+import java.util.ArrayList;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.test.util.ReflectionTestUtils;
+
 class JwtUtilTest {
 
     private JwtUtil jwtUtil;
-    private CustomUserDetailsService userDetailsService;
+
+    private UserDetails userDetails;
 
     @BeforeEach
     void setUp() {
-        // We can't easily initialize the JWT util with proper configuration in test mode
-        // but we know it compiles successfully
+        jwtUtil = new JwtUtil();
+
+        // 🔥 inject expiration manually (since we are NOT using Spring context)
+        ReflectionTestUtils.setField(jwtUtil, "expiration", 3600L);
+
+        jwtUtil.init(); // generate key
+
+        userDetails = new User(
+            "juan@example.com",
+            "password",
+            new ArrayList<>()
+        );
     }
 
     @Test
-    void testJwtUtilClassExists() {
-        assertNotNull(JwtUtil.class);
+    void generateToken_ShouldCreateValidToken() {
+        String token = jwtUtil.generateToken(userDetails);
+
+        assertNotNull(token);
+        assertFalse(token.isEmpty());
+    }
+
+    @Test
+    void extractUsername_ShouldReturnCorrectUsername() {
+        String token = jwtUtil.generateToken(userDetails);
+
+        String username = jwtUtil.extractUsername(token);
+
+        assertEquals("juan@example.com", username);
+    }
+
+    @Test
+    void validateToken_ShouldReturnTrueForValidToken() {
+        String token = jwtUtil.generateToken(userDetails);
+
+        Boolean isValid = jwtUtil.validateToken(token, userDetails);
+
+        assertTrue(isValid);
+    }
+
+    @Test
+    void extractExpiration_ShouldBeInFuture() {
+        String token = jwtUtil.generateToken(userDetails);
+
+        assertTrue(
+            jwtUtil.extractExpiration(token).after(new java.util.Date())
+        );
     }
 }
