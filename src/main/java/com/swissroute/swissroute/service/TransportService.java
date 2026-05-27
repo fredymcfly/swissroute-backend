@@ -124,7 +124,7 @@ public class TransportService {
                 dto.setId(node.path("id").asText());
                 dto.setNombre(node.path("name").asText());
 
-                // 🔥 CORRECCIÓN IMPORTANTE
+
                 dto.setLongitud(node.path("coordinate").path("x").asDouble());
                 dto.setLatitud(node.path("coordinate").path("y").asDouble());
 
