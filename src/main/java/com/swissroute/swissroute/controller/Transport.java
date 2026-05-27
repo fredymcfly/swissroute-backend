@@ -26,4 +26,12 @@ public class WebClientController {
     public Mono<String> getLocations(@RequestParam String query) {
         return webClientService.getLocations(query);
     }
+
+    @GetMapping("/locations/coordinates")
+    public Mono<String> getLocationsByCoordinates(
+        @RequestParam double x,
+        @RequestParam double y
+    ) {
+        return webClientService.getLocationsByCoordinates(x, y);
+    }
 }
