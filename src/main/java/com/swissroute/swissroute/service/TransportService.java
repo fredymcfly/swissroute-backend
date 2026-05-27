@@ -85,4 +85,44 @@ public class WebClientService {
             )
             .bodyToMono(String.class);
     }
+
+    public Mono<String> getLocationsByCoordinates(double x, double y) {
+        return webClient
+            .get()
+            .uri(uriBuilder ->
+                uriBuilder
+                    .path("/locations")
+                    .queryParam("x", x)
+                    .queryParam("y", y)
+                    .build()
+            )
+            .retrieve()
+            .onStatus(
+                org.springframework.http.HttpStatusCode::is4xxClientError,
+                response -> {
+                    int code = response.statusCode().value();
+
+                    if (code == 404) {
+                        return Mono.error(
+                            new Http404Exception("Not Found: " + code)
+                        );
+                    }
+
+                    return Mono.error(
+                        new Http400Exception("Bad Request: " + code)
+                    );
+                }
+            )
+            .onStatus(
+                org.springframework.http.HttpStatusCode::is5xxServerError,
+                response ->
+                    Mono.error(
+                        new Http500Exception(
+                            "Internal Server Error: " +
+                                response.statusCode().value()
+                        )
+                    )
+            )
+            .bodyToMono(String.class);
+    }
 }
