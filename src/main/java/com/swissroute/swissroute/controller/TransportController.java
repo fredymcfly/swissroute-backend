@@ -1,30 +1,32 @@
 package com.swissroute.swissroute.controller;
 
-import com.swissroute.swissroute.service.WebClientService;
+import com.swissroute.swissroute.service.TransportService;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/api/transport")
-public class WebClientController {
+public class TransportController {
 
-    private final WebClientService webClientService;
+    private final TransportService transportService;
 
-    public WebClientController(WebClientService webClientService) {
-        this.webClientService = webClientService;
+    public TransportController(TransportService transportService) {
+        this.transportService = transportService;
     }
+
+
 
     @GetMapping("/connections")
     public Mono<String> getConnections(
         @RequestParam String from,
         @RequestParam String to
     ) {
-        return webClientService.getConnections(from, to);
+        return transportService.getConnections(from, to);
     }
 
     @GetMapping("/locations")
     public Mono<String> getLocations(@RequestParam String query) {
-        return webClientService.getLocations(query);
+        return transportService.getLocations(query);
     }
 
     @GetMapping("/locations/coordinates")
@@ -32,6 +34,6 @@ public class WebClientController {
         @RequestParam double x,
         @RequestParam double y
     ) {
-        return webClientService.getLocationsByCoordinates(x, y);
+        return transportService.getLocationsByCoordinates(x, y);
     }
 }

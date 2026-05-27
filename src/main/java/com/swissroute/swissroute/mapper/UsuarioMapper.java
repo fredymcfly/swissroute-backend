@@ -5,6 +5,10 @@ import com.swissroute.swissroute.dto.UsuarioResponse;
 import com.swissroute.swissroute.entity.Usuario;
 
 public class UsuarioMapper {
+    private UsuarioMapper() {
+        /* This utility class should not be instantiated */
+    }
+
     
     public static Usuario toUsuario(RegistroRequest registroRequest) {
         Usuario usuario = new Usuario();

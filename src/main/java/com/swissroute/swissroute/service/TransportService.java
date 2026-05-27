@@ -9,11 +9,11 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 @Service
-public class WebClientService {
+public class TransportService {
 
     private final WebClient webClient;
 
-    public WebClientService(WebClient webClient) {
+    public TransportService(WebClient webClient) {
         this.webClient = webClient;
     }
 

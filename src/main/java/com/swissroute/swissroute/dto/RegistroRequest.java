@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RegistroRequest {
+
     @NotBlank(message = "El nombre es obligatorio")
     private String nombre;
 
@@ -23,4 +24,6 @@ public class RegistroRequest {
     private String password;
 
     private String ciudadBase;
+    
+	
 }

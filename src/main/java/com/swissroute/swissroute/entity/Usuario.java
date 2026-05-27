@@ -1,18 +1,23 @@
 package com.swissroute.swissroute.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import javax.annotation.processing.Generated;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
+import lombok.Setter;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Getter
+@Setter
 @Table(name = "usuarios")
 public class Usuario {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -25,11 +30,13 @@ public class Usuario {
 
     @Column(name = "password", nullable = false, length = 255)
     private String password;
-
+    
     @Column(name = "ciudad_base", length = 100)
     private String ciudadBase;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    
+    
 }

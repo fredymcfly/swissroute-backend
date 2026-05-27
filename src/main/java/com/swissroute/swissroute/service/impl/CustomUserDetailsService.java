@@ -1,5 +1,6 @@
 package com.swissroute.swissroute.service.impl;
 
+
 import com.swissroute.swissroute.entity.Usuario;
 import com.swissroute.swissroute.repository.UsuarioRepository;
 import org.springframework.security.core.userdetails.UserDetails;
