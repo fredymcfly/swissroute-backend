@@ -1,16 +1,23 @@
 package com.swissroute.swissroute.controller;
 
 
+
 import com.swissroute.swissroute.exception.Http400Exception;
 import com.swissroute.swissroute.service.TransportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Mono;
+
+import com.swissroute.swissroute.dto.ConnectionDTO;
+import com.swissroute.swissroute.service.ConnectionService;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @RestController
+
 @RequestMapping("/api/conexiones")
 @Tag(
         name = "Conexiones",
@@ -29,10 +36,13 @@ public class ConnectionController {
             summary = "Obtener conexiones entre dos estaciones",
             description = "Devuelve las conexiones de transporte entre dos ubicaciones (from → to)"
     )
-    public Mono<String> getConnections(
+    public List<ConnectionDTO> getConnections(
             @RequestParam String from,
-            @RequestParam String to
+            @RequestParam String to,
+            @RequestParam(required = false) String date,
+            @RequestParam(required = false) String time,
+            @RequestParam(required = false) String transportations
     ) {
-        return transportService.getConnections(from, to);
+        return transportService.getConnections(from, to, date, time, transportations);
     }
 }
