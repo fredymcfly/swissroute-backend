@@ -12,7 +12,7 @@ import reactor.netty.http.client.HttpClient;
 @Configuration
 public class WebClientConfig {
 
-    @Value("${swiss.api.base-url:http://transport.opendata.ch/v1}")
+    @Value("${swiss.api.base-url}")
     private String baseUrl;
 
     @Bean
