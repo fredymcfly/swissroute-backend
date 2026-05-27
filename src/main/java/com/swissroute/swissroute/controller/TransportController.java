@@ -11,10 +11,10 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/transport")
+@RequestMapping("/api/estaciones")
 @Tag(
         name = "Transportes",
-        description = "Operaciones relacionadas con transporte, estaciones y conexiones"
+        description = "Búsqueda de estaciones por nombre o coordenadas"
 )
 public class TransportController {
 
@@ -24,45 +24,30 @@ public class TransportController {
         this.transportService = transportService;
     }
 
-    @GetMapping("/connections")
+    @GetMapping
     @Operation(
-            summary = "Obtener conexiones entre dos estaciones",
-            description = "Devuelve las conexiones de transporte entre dos ubicaciones (from → to)"
-    )
-    public Mono<String> getConnections(
-            @RequestParam String from,
-            @RequestParam String to
-    ) {
-        return transportService.getConnections(from, to);
-    }
-
-    @GetMapping("/locations")
-    @Operation(
-            summary = "Buscar estaciones por nombre",
-            description = "Devuelve una lista de estaciones filtradas por nombre (query obligatorio)"
+            summary = "Buscar estaciones",
+            description = "Permite buscar por nombre (query) o por coordenadas (x,y)"
     )
     public Mono<List<StationDTO>> getStations(
-            @RequestParam(required = false) String query
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) Double x,
+            @RequestParam(required = false) Double y
     ) {
 
-        if (query == null || query.isBlank()) {
-            return Mono.error(
-                    new Http400Exception("El parámetro 'query' es obligatorio")
-            );
+        // CASO 1: búsqueda por nombre
+        if (query != null && !query.isBlank()) {
+            return transportService.getLocations(query);
         }
 
-        return transportService.getLocations(query);
-    }
+        // CASO 2: búsqueda por coordenadas
+        if (x != null && y != null) {
+            return transportService.getLocationsByCoordinates(x, y);
+        }
 
-    @GetMapping("/locations/coordinates")
-    @Operation(
-            summary = "Buscar estaciones por coordenadas",
-            description = "Devuelve estaciones cercanas usando coordenadas X (lat) e Y (lon)"
-    )
-    public Mono<String> getLocationsByCoordinates(
-            @RequestParam double x,
-            @RequestParam double y
-    ) {
-        return transportService.getLocationsByCoordinates(x, y);
+        // CASO inválido
+        return Mono.error(
+                new Http400Exception("Debes enviar 'query' o 'x e y'")
+        );
     }
 }
