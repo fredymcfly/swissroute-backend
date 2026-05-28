@@ -1,5 +1,8 @@
 package com.swissroute.swissroute.dto;
 
+import lombok.Getter;
+
+@Getter
 public class LoginResponse {
 
     private final String token;
@@ -9,11 +12,4 @@ public class LoginResponse {
         this.token = token;
     }
 
-    public String getToken() {
-        return token;
-    }
-
-    public String getType() {
-        return type;
-    }
 }
