@@ -31,5 +31,6 @@ CREATE TABLE estaciones_favoritas (
     usuario_id BIGINT REFERENCES usuarios(id),
     estacion_id_externo VARCHAR(100),
     nombre_estacion VARCHAR(150),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted BOOLEAN DEFAULT FALSE
 );
