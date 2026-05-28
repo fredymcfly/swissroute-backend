@@ -4,6 +4,7 @@ import com.swissroute.swissroute.dto.ConnectionDTO;
 import com.swissroute.swissroute.dto.external.ExternalConnectionResponse;
 import com.swissroute.swissroute.exception.ExternalApiException;
 import com.swissroute.swissroute.mapper.ConnectionMapper;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -14,10 +15,8 @@ public class ConnectionService {
 
     private final WebClient webClient;
 
-    public ConnectionService(WebClient.Builder webClientBuilder) {
-        this.webClient = webClientBuilder
-                .baseUrl("https://transport.opendata.ch/v1")
-                .build();
+    public ConnectionService(WebClient webClient) {
+        this.webClient = webClient;
     }
 
     public List<ConnectionDTO> getConnections(
@@ -38,7 +37,7 @@ public class ConnectionService {
                         .build())
                 .retrieve()
                 .onStatus(
-                        status -> status.isError(),
+                        HttpStatusCode::isError,
                         clientResponse -> {
                             throw new ExternalApiException("Error llamando a la API externa de conexiones");
                         }

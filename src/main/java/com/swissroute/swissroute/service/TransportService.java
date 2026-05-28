@@ -45,7 +45,7 @@ public class TransportService {
                         .build())
                 .retrieve()
                 .onStatus(
-                        status -> status.isError(),
+                        HttpStatusCode::isError,
                         clientResponse -> {
                             throw new ExternalApiException("Error llamando a la API externa de conexiones");
                         }

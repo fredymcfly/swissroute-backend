@@ -6,7 +6,7 @@ import lombok.Getter;
 public class LoginResponse {
 
     private final String token;
-    private final String type = "Bearer";
+    private static final String type = "Bearer";
 
     public LoginResponse(String token) {
         this.token = token;
