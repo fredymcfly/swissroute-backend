@@ -12,4 +12,10 @@ public class StationDTO {
     private String nombre;
     private double latitud;
     private double longitud;
+
+
+    public StationDTO(String id, String nombre) {
+        this.id = id;
+        this.nombre = nombre;
+    }
 }

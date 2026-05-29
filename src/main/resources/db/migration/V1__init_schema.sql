@@ -29,7 +29,8 @@ CREATE TABLE historial_busquedas (
 CREATE TABLE estaciones_favoritas (
     id BIGSERIAL PRIMARY KEY,
     usuario_id BIGINT REFERENCES usuarios(id),
-    estacion_id_externo VARCHAR(100),
+    estacion_id_externo BIGINT,
     nombre_estacion VARCHAR(150),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted BOOLEAN DEFAULT FALSE
 );
