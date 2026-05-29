@@ -2,7 +2,6 @@ package com.swissroute.swissroute.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import javax.annotation.processing.Generated;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
