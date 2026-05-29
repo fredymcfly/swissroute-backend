@@ -53,27 +53,37 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf()
-            .disable()
-            .authorizeHttpRequests(authz ->
-                authz
-                    .requestMatchers("/api/usuarios/login")
-                    .permitAll()
-                    .requestMatchers("/api/usuarios/registro")
-                    .permitAll()
-                    .requestMatchers("/api/usuarios/**")
-                    .authenticated()
-                    .anyRequest()
-                    .permitAll()
-            )
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            .addFilterBefore(
-                jwtAuthenticationFilter,
-                UsernamePasswordAuthenticationFilter.class
-            );
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
+        http
+                .csrf(csrf -> csrf.disable())
+
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+
+                .authorizeHttpRequests(auth -> auth
+
+                        // Public endpoints
+                        .requestMatchers(
+                                "/api/usuarios/login",
+                                "/api/usuarios/registro"
+                        ).permitAll()
+
+                        // Protected endpoints
+                        .requestMatchers(
+                                "/api/estaciones/**",
+                                "/api/conexiones/**"
+                        ).authenticated()
+
+                        // Any other request
+                        .anyRequest().authenticated()
+                )
+
+                .addFilterBefore(
+                        jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                );
 
         return http.build();
     }
