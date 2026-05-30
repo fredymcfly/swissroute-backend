@@ -1,59 +1,53 @@
 package com.swissroute.swissroute.service;
 
-import com.swissroute.swissroute.dto.StationBoard;
+import com.swissroute.swissroute.dto.StationBoardDTO;
+import com.swissroute.swissroute.dto.external.ExternalStationBoardResponse;
+import com.swissroute.swissroute.mapper.StationBoardMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import org.springframework.http.HttpStatusCode;
+
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
-public class StationboardService {
+public class StationBoardServiceImpl {
+
+
     private final WebClient webClient;
 
-    public StationboardService(WebClient webClient) {
+    public StationBoardServiceImpl(WebClient webClient) {
         this.webClient = webClient;
     }
 
-    public Mono<List<StationBoard>> getStationboard(String station, Integer limit, String transportType) {
+    public Mono<List<StationBoardDTO>> getStationboard(
+            String station,
+            int limit,
+            List<String> transport
+    ) {
+
         return webClient.get()
-                .uri(uriBuilder -> {
-                    var ub = uriBuilder.path("/stationboard")
-                            .queryParam("station", station);
-                    if (limit != null) ub.queryParam("limit", limit);
-                    if (transportType != null && !transportType.isBlank()) ub.queryParam("transportations", transportType);
-                    return ub.build();
-                })
-                .accept(org.springframework.http.MediaType.APPLICATION_JSON)
+                .uri(uriBuilder -> uriBuilder
+                        .scheme("https")
+                        .host("transport.opendata.ch")
+                        .path("/v1/stationboard")
+                        .queryParam("station", station)
+                        .queryParam("limit", limit)
+                        .queryParamIfPresent("transportations[]", Optional.ofNullable(transport))
+                        .build()
+                )
                 .retrieve()
-                .onStatus(HttpStatus::is4xxClientError, resp ->
-                        resp.bodyToMono(String.class)
-                                .flatMap(body -> Mono.error(new ResponseStatusException(resp.statusCode(), "Error cliente: " + body)))
-                )
-                .onStatus(HttpStatus::is5xxServerError, resp ->
-                        resp.bodyToMono(String.class)
-                                .flatMap(body -> Mono.error(new ResponseStatusException(resp.statusCode(), "Error servidor: " + body)))
-                )
-                .bodyToMono(StationboardResponse.class)
-                .map(this::mapToDtoList);
-    }
-
-    private List<StationboardDTO> mapToDtoList(StationboardResponse response) {
-        return Optional.ofNullable(response.getStationboard()).orElse(List.of()).stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
-    }
-
-    private StationboardDTO toDto(StationboardEntry e) {
-        OffsetDateTime dt = null;
-        if (e.getStop() != null && e.getStop().getDeparture() != null) {
-            try {
-                dt = OffsetDateTime.parse(e.getStop().getDeparture());
-            } catch (Exception ex) {
-                // Si el formato no es ISO, podrías parsear con DateTimeFormatter personalizado aquí.
-            }
-        }
-        return new StationboardDTO(e.getName(), e.getCategory(), e.getTo(), dt);
+                .onStatus(HttpStatusCode::is4xxClientError,
+                        resp -> Mono.error(new RuntimeException("Error 4xx consultando la API externa")))
+                .onStatus(HttpStatusCode::is5xxServerError,
+                        resp -> Mono.error(new RuntimeException("Error 5xx en el servidor externo")))
+                .bodyToMono(ExternalStationBoardResponse.class)
+                .map(response ->
+                        response.stationboard().stream()
+                                .map(StationBoardMapper::fromExternal)
+                                .toList()
+                );
     }
 }
