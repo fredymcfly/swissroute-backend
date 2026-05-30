@@ -16,6 +16,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -63,12 +64,10 @@ public class TransportService {
                 .toList();
     }
 
-    public Mono<List<StationDTO>> getLocations(String query) {
+    public List<StationDTO> getLocations(String query) {
 
         if (query == null || query.isBlank()) {
-            return Mono.error(
-                    new Http400Exception("El parámetro 'query' es obligatorio")
-            );
+            return Collections.emptyList();
         }
 
         return webClient
@@ -83,7 +82,7 @@ public class TransportService {
 
 
                 .onStatus(
-                        org.springframework.http.HttpStatusCode::is4xxClientError,
+                        HttpStatusCode::is4xxClientError,
                         response -> {
                             int code = response.statusCode().value();
 
@@ -101,7 +100,7 @@ public class TransportService {
 
 
                 .onStatus(
-                        org.springframework.http.HttpStatusCode::is5xxServerError,
+                        HttpStatusCode::is5xxServerError,
                         response -> Mono.error(
                                 new Http500Exception(
                                         "Servicio externo no disponible (503)"
@@ -111,7 +110,7 @@ public class TransportService {
 
 
                 .bodyToMono(String.class)
-                .map(this::mapToStations);
+                .map(this::mapToStations).block();
     }
 
     private List<StationDTO> mapToStations(String json) {
@@ -145,7 +144,7 @@ public class TransportService {
         return result;
     }
 
-    public Mono<List<StationDTO>> getLocationsByCoordinates(double x, double y) {
+    public List<StationDTO> getLocationsByCoordinates(double x, double y) {
         return webClient
                 .get()
                 .uri(uriBuilder ->
@@ -169,6 +168,6 @@ public class TransportService {
                         Mono.error(new Http500Exception("Servicio externo no disponible (503)"))
                 )
                 .bodyToMono(String.class)
-                .map(this::mapToStations);
+                .map(this::mapToStations).block();
     }
 }

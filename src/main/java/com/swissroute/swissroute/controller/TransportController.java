@@ -1,12 +1,12 @@
 package com.swissroute.swissroute.controller;
 
 import com.swissroute.swissroute.dto.StationDTO;
-import com.swissroute.swissroute.exception.Http400Exception;
+
 import com.swissroute.swissroute.service.TransportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.Collections;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 
@@ -29,7 +29,7 @@ public class TransportController {
             summary = "Buscar estaciones",
             description = "Permite buscar por nombre (query) o por coordenadas (x,y)"
     )
-    public Mono<List<StationDTO>> getStations(
+    public List<StationDTO> getStations(
             @RequestParam(required = false) String query,
             @RequestParam(required = false) Double x,
             @RequestParam(required = false) Double y
@@ -46,8 +46,6 @@ public class TransportController {
         }
 
         // CASO inválido
-        return Mono.error(
-                new Http400Exception("Debes enviar 'query' o 'x e y'")
-        );
+        return Collections.emptyList();
     }
 }
