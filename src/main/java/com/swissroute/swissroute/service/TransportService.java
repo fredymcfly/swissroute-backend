@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swissroute.swissroute.dto.ConnectionDTO;
 import com.swissroute.swissroute.dto.StationDTO;
 import com.swissroute.swissroute.dto.external.ExternalConnectionResponse;
+import com.swissroute.swissroute.entity.Usuario;
 import com.swissroute.swissroute.exception.ExternalApiException;
 import com.swissroute.swissroute.exception.Http400Exception;
 import com.swissroute.swissroute.exception.Http404Exception;
@@ -24,8 +25,10 @@ public class TransportService {
 
     private final WebClient webClient;
 
-    public TransportService(WebClient webClient) {
+    private final HistorialBusquedaService historialBusquedaService;
+    public TransportService(WebClient webClient, HistorialBusquedaService historialBusquedaService) {
         this.webClient = webClient;
+        this.historialBusquedaService = historialBusquedaService;
     }
 
     public List<ConnectionDTO> getConnections(
@@ -34,7 +37,10 @@ public class TransportService {
             String date,
             String time,
             String transportations
-    ) {
+
+
+    )
+    {
         ExternalConnectionResponse response = webClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/connections")
@@ -58,10 +64,22 @@ public class TransportService {
             throw new ExternalApiException("La API externa no devolvió conexiones");
         }
 
-        return response.connections()
+        List<ConnectionDTO> conexiones = response.connections()
                 .stream()
                 .map(ConnectionMapper::toDTO)
                 .toList();
+
+        Usuario usuario = obtenerUsuarioTemporal();
+
+        historialBusquedaService.guardarBusqueda(
+                from,
+                to,
+                conexiones.size(),
+                usuario
+        );
+
+
+        return conexiones;
     }
 
     public List<StationDTO> getLocations(String query) {
@@ -169,5 +187,11 @@ public class TransportService {
                 )
                 .bodyToMono(String.class)
                 .map(this::mapToStations).block();
+    }
+
+    private Usuario obtenerUsuarioTemporal() {
+        Usuario usuario = new Usuario();
+        usuario.setId(1L);
+        return usuario;
     }
 }
