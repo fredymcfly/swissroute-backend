@@ -1,5 +1,8 @@
 package com.swissroute.swissroute.service;
 
+
+import com.swissroute.swissroute.entity.Usuario;
+import com.swissroute.swissroute.service.HistorialBusquedaService;
 import com.swissroute.swissroute.dto.ConnectionDTO;
 import com.swissroute.swissroute.dto.external.ExternalConnectionResponse;
 import com.swissroute.swissroute.exception.ExternalApiException;
@@ -13,20 +16,30 @@ import java.util.List;
 public class ConnectionService {
 
     private final WebClient webClient;
+    private final HistorialBusquedaService historialBusquedaService;
 
-    public ConnectionService(WebClient.Builder webClientBuilder) {
+    public ConnectionService(
+            WebClient.Builder webClientBuilder,
+            HistorialBusquedaService historialBusquedaService
+    ) {
+
         this.webClient = webClientBuilder
                 .baseUrl("https://transport.opendata.ch/v1")
                 .build();
-    }
 
+        this.historialBusquedaService = historialBusquedaService;
+    }
+    
     public List<ConnectionDTO> getConnections(
             String from,
             String to,
             String date,
             String time,
             String transportations
-    ) {
+            
+            
+    )
+   {
         ExternalConnectionResponse response = webClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/connections")
@@ -50,9 +63,27 @@ public class ConnectionService {
             throw new ExternalApiException("La API externa no devolvió conexiones");
         }
 
-        return response.connections()
+        List<ConnectionDTO> conexiones = response.connections()
                 .stream()
                 .map(ConnectionMapper::toDTO)
                 .toList();
+
+        Usuario usuario = obtenerUsuarioTemporal();
+
+        historialBusquedaService.guardarBusqueda(
+                from,
+                to,
+                conexiones.size(),
+                usuario
+        );
+
+
+        return conexiones;
+    }
+    
+    private Usuario obtenerUsuarioTemporal() {
+        Usuario usuario = new Usuario();
+        usuario.setId(1L);
+        return usuario;
     }
 }
