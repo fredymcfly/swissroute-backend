@@ -1,6 +1,7 @@
 package com.swissroute.swissroute.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,8 +19,10 @@ public class HistorialBusqueda {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull
     private String origen;
 
+    @NotNull
     private String destino;
 
     @Column(name = "fecha_consulta")
@@ -28,8 +31,9 @@ public class HistorialBusqueda {
     @Column(name = "num_resultados")
     private Integer numResultados;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "usuario_id", nullable = false)
+    @NotNull
     private Usuario usuario;
     public HistorialBusqueda(String origen, String destino, LocalDateTime fechaConsulta, Integer numResultados, Usuario usuario) {
         this.origen = origen;

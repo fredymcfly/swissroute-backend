@@ -67,13 +67,16 @@ public class SecurityConfig {
                         // Public endpoints
                         .requestMatchers(
                                 "/api/usuarios/login",
-                                "/api/usuarios/registro"
+                                "/api/usuarios/registro",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
                         ).permitAll()
 
                         // Protected endpoints
                         .requestMatchers(
                                 "/api/estaciones/**",
-                                "/api/conexiones/**"
+                                "/api/conexiones/**",
+                                "/api/historial/**"
                         ).authenticated()
 
                         // Any other request
