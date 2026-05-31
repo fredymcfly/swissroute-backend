@@ -21,7 +21,7 @@ import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
+
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -138,7 +138,7 @@ class HistorialBusquedaServiceTest {
     @DisplayName("testEliminarEntrada_DeOtroUsuario - Verify cannot delete another user's entry (should throw exception)")
     void testEliminarEntrada_DeOtroUsuario() {
         // Given
-        Usuario usuario1 = new Usuario(1L, "John Doe", "john@example.com", "password123", "Zurich", LocalDateTime.now());
+
         Usuario usuario2 = new Usuario(2L, "Jane Smith", "jane@example.com", "password456", "Geneva", LocalDateTime.now());
         Long id = 1L;
         

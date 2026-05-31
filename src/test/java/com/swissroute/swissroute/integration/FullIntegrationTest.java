@@ -2,10 +2,7 @@ package com.swissroute.swissroute.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swissroute.swissroute.dto.*;
-import com.swissroute.swissroute.dto.external.ExternalConnectionResponse;
-import com.swissroute.swissroute.dto.external.ExternalConnection;
-import com.swissroute.swissroute.dto.external.ExternalSection;
-import com.swissroute.swissroute.dto.external.ExternalStation;
+
 import com.swissroute.swissroute.service.UsuarioService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,11 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.Mono;
-import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -28,7 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-public class FullIntegrationTest {
+class FullIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -41,11 +34,11 @@ public class FullIntegrationTest {
 
     private String jwtToken;
     private String testUserEmail;
-    private String testUserPassword = "password123";
+    private final String testUserPassword = "password123";
     private static final AtomicLong counter = new AtomicLong(0);
 
     @BeforeEach
-    public void setup() throws Exception {
+    void setup() {
         // Generate unique email for each test with timestamp 
         long timestamp = System.currentTimeMillis();
         long testCounter = counter.incrementAndGet();
@@ -56,17 +49,14 @@ public class FullIntegrationTest {
     }
 
     @AfterEach
-    public void tearDown() throws Exception {
+    void tearDown() {
         // Clean up user if exists (optional cleanup)
-        try {
-            // The @Transactional annotation will rollback changes
-        } catch (Exception ignored) {
-        }
+
     }
 
     @Test
-    @DisplayName("Tarea 2 - Registro de usuarios") 
-    public void testUsuarioRegistro() throws Exception {
+    @DisplayName("Tarea 2 - Registro de usuarios")
+    void testUsuarioRegistro() throws Exception {
         // Setup request DTO
         RegistroRequest request = new RegistroRequest();
         request.setEmail(testUserEmail);
@@ -83,7 +73,7 @@ public class FullIntegrationTest {
 
     @Test
     @DisplayName("Tarea 3 - Login y obtención de token JWT")
-    public void testUsuarioLogin() throws Exception {
+    void testUsuarioLogin() throws Exception {
         // First register the user
         testUsuarioRegistro();
 
@@ -117,7 +107,7 @@ public class FullIntegrationTest {
 
     @Test
     @DisplayName("Tarea 5 - Búsqueda de estaciones por nombre")
-    public void testBuscarEstacionesPorNombre() throws Exception {
+    void testBuscarEstacionesPorNombre() throws Exception {
         // First login to get valid token
         testUsuarioLogin();
 
@@ -137,7 +127,7 @@ public class FullIntegrationTest {
 
     @Test
     @DisplayName("Tarea 6 - Búsqueda de estaciones por coordenadas")
-    public void testBuscarEstacionesPorCoordenadas() throws Exception {
+    void testBuscarEstacionesPorCoordenadas() throws Exception {
         // First login to get valid token
         testUsuarioLogin();
 
@@ -158,7 +148,7 @@ public class FullIntegrationTest {
 
     @Test
     @DisplayName("Tarea 7 - Conexiones entre estaciones")
-    public void testConexionesEntreEstaciones() throws Exception {
+    void testConexionesEntreEstaciones() throws Exception {
         // First login to get valid token
         testUsuarioLogin();
 
@@ -180,7 +170,7 @@ public class FullIntegrationTest {
 
     @Test
     @DisplayName("Tarea 8 - Historial de búsquedas (con verificación automática)")
-    public void testHistorialDeBusquedas() throws Exception {
+    void testHistorialDeBusquedas() throws Exception {
         // First login to get valid token
         testUsuarioLogin();
 
@@ -218,21 +208,21 @@ public class FullIntegrationTest {
 
 
     // Helper method to mock external API responses for station searches
-    private void mockExternalApiForStationSearch() throws Exception {
+    private void mockExternalApiForStationSearch() {
         // This would normally be handled by an external API mock
         // In a real test, you would mock these API calls
         // For now, we'll just validate the endpoint works as expected with valid parameters
     }
 
     // Helper method to mock external API responses for station searches by coordinates  
-    private void mockExternalApiForStationSearchByCoordinates() throws Exception {
+    private void mockExternalApiForStationSearchByCoordinates() {
         // This would normally be handled by an external API mock
         // In a real test, you would mock these API calls 
         // For now, we'll just validate the endpoint works as expected with valid parameters
     }
 
     // Helper method to mock external API responses for connections
-    private void mockExternalApiForConnections() throws Exception {
+    private void mockExternalApiForConnections() {
         // This would normally be handled by an external API mock
         // In a real test, you would mock these API calls
         // For now, we'll just validate the endpoint works as expected with valid parameters
