@@ -9,6 +9,7 @@ import com.swissroute.swissroute.repository.RouteRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -40,4 +41,42 @@ public class RouteServiceImpl implements RouteService{
         routeRepository.save(route);
         return routeMapper.toDto(route);
     }
+
+    public List<FavoriteRouteDTO> getAllRoutes(Long userId) {
+        return routeRepository.findByUserId(userId)
+                .stream()
+                .map(routeMapper::toDto)
+                .toList();
+    }
+
+    public FavoriteRouteDTO updateRoute(Long id, FavoriteRouteDTO request, Long userId) {
+
+        FavoriteRoute route = routeRepository.findByRouteIdAndRouteId(id, userId)
+                .orElseThrow(() -> new RuntimeException("Ruta no encontrada"));
+
+
+        if (request.name() != null && !request.name().isBlank()) {
+            // Validar duplicado si cambia el nombre
+            if (routeRepository.existsByUsuarioIdAndNombre(userId, request.name())
+                    && !route.getNombre().equals(request.name())) {
+                throw new RutaYaExisteException("Ya existe una ruta con ese nombre para este usuario");
+            }
+            route.setNombre(request.name());
+        }
+
+        if (request.from() != null) route.setFrom(request.from());
+        if (request.to() != null) route.setTo(request.to());
+        if (request.transport() != null) route.setTransport(request.transport());
+        routeRepository.save(route);
+        return routeMapper.toDto(route);
+    }
+
+    public void deleteRoute(Long routeId, Long userId) {
+
+        FavoriteRoute ruta = routeRepository.findByRouteIdAndRouteId(routeId, userId)
+                .orElseThrow(() -> new RuntimeException("Ruta no encontrada"));
+        routeRepository.delete(ruta);
+    }
+
+
 }

@@ -7,10 +7,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/rutas-favoritas")
@@ -27,11 +26,34 @@ public class RoutesController {
     }
 
     @PostMapping("/")
-    public ResponseEntity<?> crearRutaFavorita(
+    public ResponseEntity<FavoriteRouteDTO> crearRutaFavorita(
             @Valid @RequestBody FavoriteRouteDTO request, Long userId) {
 
 
         FavoriteRouteDTO route = service.saveFavoriteRoute(request, userId);
         return new ResponseEntity<>(route, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<FavoriteRouteDTO> actualizarRuta(
+            @PathVariable Long id,
+            @RequestBody FavoriteRouteDTO request,
+            long userId) {
+
+        FavoriteRouteDTO route = service.updateRoute(id, request, userId);
+        return new ResponseEntity<>(route, HttpStatus.OK);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<FavoriteRouteDTO>> obtenerRutas(Long userId) {
+        return new ResponseEntity<>(service.getAllRoutes(userId), HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminarRuta(
+            @PathVariable Long id, Long userId) {
+
+        service.deleteRoute(id, userId);
+        return ResponseEntity.noContent().build();
     }
 }
