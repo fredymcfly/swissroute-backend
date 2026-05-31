@@ -4,6 +4,7 @@ import com.swissroute.swissroute.dto.HistorialBusquedaDTO;
 import com.swissroute.swissroute.entity.HistorialBusqueda;
 import com.swissroute.swissroute.entity.Usuario;
 import com.swissroute.swissroute.repository.HistorialBusquedaRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 
 @Service
+@Transactional
 public class HistorialBusquedaService {
 
     private final HistorialBusquedaRepository historialBusquedaRepository;
@@ -37,7 +39,16 @@ public class HistorialBusquedaService {
     }
 
     public void eliminarEntrada(Long id, Usuario usuario) {
-        historialBusquedaRepository.deleteByIdAndUsuario(id, usuario);
+        // Primero verificamos que la entrada pertenezca al usuario
+        HistorialBusqueda historial = historialBusquedaRepository
+            .findFirstByIdAndUsuarioId(id, usuario.getId());
+        
+        if (historial == null) {
+            throw new RuntimeException("Entrada no encontrada o no pertenece al usuario");
+        }
+        
+        // Si existe y pertenece al usuario, la eliminamos
+        historialBusquedaRepository.deleteById(id);
     }
 
     public void eliminarTodo(Usuario usuario) {

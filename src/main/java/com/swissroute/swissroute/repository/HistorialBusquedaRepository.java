@@ -10,9 +10,9 @@ public interface HistorialBusquedaRepository extends JpaRepository<HistorialBusq
 
     Page<HistorialBusqueda> findByUsuario(Usuario usuario, Pageable pageable);
 
-    boolean existsByIdAndUsuario(Long id, Usuario usuario);
+    HistorialBusqueda findFirstByIdAndUsuarioId(Long id, Long usuarioId);
 
-    void deleteByIdAndUsuario(Long id, Usuario usuario);
+    void deleteById(Long id);
 
     void deleteByUsuario(Usuario usuario);
 }
