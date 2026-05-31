@@ -1,0 +1,67 @@
+package com.swissroute.swissroute.service;
+
+import com.swissroute.swissroute.dto.HistorialBusquedaDTO;
+import com.swissroute.swissroute.entity.HistorialBusqueda;
+import com.swissroute.swissroute.entity.Usuario;
+import com.swissroute.swissroute.repository.HistorialBusquedaRepository;
+import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+
+@Service
+@Transactional
+public class HistorialBusquedaService {
+
+    private final HistorialBusquedaRepository historialBusquedaRepository;
+
+    public HistorialBusquedaService(HistorialBusquedaRepository historialBusquedaRepository) {
+        this.historialBusquedaRepository = historialBusquedaRepository;
+    }
+
+    public void guardarBusqueda(String origen, String destino, int numResultados, Usuario usuario) {
+        HistorialBusqueda historial = new HistorialBusqueda(
+                origen,
+                destino,
+                LocalDateTime.now(),
+                numResultados,
+                usuario
+        );
+
+        historialBusquedaRepository.save(historial);
+    }
+
+    public Page<HistorialBusquedaDTO> obtenerHistorial(Usuario usuario, Pageable pageable) {
+        return historialBusquedaRepository.findByUsuario(usuario, pageable)
+                .map(this::toDTO);
+    }
+
+    public void eliminarEntrada(Long id, Usuario usuario) {
+        // Primero verificamos que la entrada pertenezca al usuario
+        HistorialBusqueda historial = historialBusquedaRepository
+            .findFirstByIdAndUsuarioId(id, usuario.getId());
+        
+        if (historial == null) {
+            throw new RuntimeException("Entrada no encontrada o no pertenece al usuario");
+        }
+        
+        // Si existe y pertenece al usuario, la eliminamos
+        historialBusquedaRepository.deleteById(id);
+    }
+
+    public void eliminarTodo(Usuario usuario) {
+        historialBusquedaRepository.deleteByUsuario(usuario);
+    }
+
+    private HistorialBusquedaDTO toDTO(HistorialBusqueda historial) {
+        return new HistorialBusquedaDTO(
+                historial.getId(),
+                historial.getOrigen(),
+                historial.getDestino(),
+                historial.getFechaConsulta(),
+                historial.getNumResultados()
+        );
+    }
+}

@@ -5,12 +5,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swissroute.swissroute.dto.ConnectionDTO;
 import com.swissroute.swissroute.dto.StationDTO;
 import com.swissroute.swissroute.dto.external.ExternalConnectionResponse;
+import com.swissroute.swissroute.entity.Usuario;
 import com.swissroute.swissroute.exception.ExternalApiException;
 import com.swissroute.swissroute.exception.Http400Exception;
 import com.swissroute.swissroute.exception.Http404Exception;
 import com.swissroute.swissroute.exception.Http500Exception;
 import com.swissroute.swissroute.mapper.ConnectionMapper;
+import com.swissroute.swissroute.repository.UsuarioRepository;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -24,8 +28,14 @@ public class TransportService {
 
     private final WebClient webClient;
 
-    public TransportService(WebClient webClient) {
+    private final HistorialBusquedaService historialBusquedaService;
+    
+    private final UsuarioRepository usuarioRepository;
+    
+    public TransportService(WebClient webClient, HistorialBusquedaService historialBusquedaService, UsuarioRepository usuarioRepository) {
         this.webClient = webClient;
+        this.historialBusquedaService = historialBusquedaService;
+        this.usuarioRepository = usuarioRepository;
     }
 
     public List<ConnectionDTO> getConnections(
@@ -34,7 +44,10 @@ public class TransportService {
             String date,
             String time,
             String transportations
-    ) {
+
+
+    )
+    {
         ExternalConnectionResponse response = webClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/connections")
@@ -58,10 +71,22 @@ public class TransportService {
             throw new ExternalApiException("La API externa no devolvió conexiones");
         }
 
-        return response.connections()
+        List<ConnectionDTO> conexiones = response.connections()
                 .stream()
                 .map(ConnectionMapper::toDTO)
                 .toList();
+
+        Usuario usuario = obtenerUsuarioAutenticado();
+
+        historialBusquedaService.guardarBusqueda(
+                 from,
+                 to,
+                 conexiones.size(),
+                 usuario
+         );
+
+
+        return conexiones;
     }
 
     public List<StationDTO> getLocations(String query) {
@@ -169,5 +194,15 @@ public class TransportService {
                 )
                 .bodyToMono(String.class)
                 .map(this::mapToStations).block();
+    }
+
+    private Usuario obtenerUsuarioAutenticado() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("No hay usuario autenticado");
+        }
+        String email = authentication.getName();
+        return usuarioRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
     }
 }
