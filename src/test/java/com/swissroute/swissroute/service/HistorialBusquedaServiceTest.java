@@ -17,6 +17,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -98,12 +99,26 @@ class HistorialBusquedaServiceTest {
         // Given
         Usuario usuario = new Usuario(1L, "John Doe", "john@example.com", "password123", "Zurich", LocalDateTime.now());
         Long id = 1L;
+        HistorialBusqueda historial = new HistorialBusqueda("Zurich", "Bern", LocalDateTime.now(), 5, usuario);
+        
+        // Set id using reflection
+        try {
+            Field idField = HistorialBusqueda.class.getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(historial, id);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+        
+        when(historialBusquedaRepository.findFirstByIdAndUsuarioId(eq(id), eq(usuario.getId())))
+            .thenReturn(historial);
 
         // When
         historialBusquedaService.eliminarEntrada(id, usuario);
 
         // Then
-        verify(historialBusquedaRepository).deleteByIdAndUsuario(id, usuario);
+        verify(historialBusquedaRepository).findFirstByIdAndUsuarioId(eq(id), eq(usuario.getId()));
+        verify(historialBusquedaRepository).deleteById(id);
     }
 
     @Test
@@ -120,19 +135,22 @@ class HistorialBusquedaServiceTest {
     }
 
     @Test
-    @DisplayName("testEliminarEntrada_DeOtroUsuario - Verify cannot delete another user's entry (should do nothing)")
+    @DisplayName("testEliminarEntrada_DeOtroUsuario - Verify cannot delete another user's entry (should throw exception)")
     void testEliminarEntrada_DeOtroUsuario() {
         // Given
         Usuario usuario1 = new Usuario(1L, "John Doe", "john@example.com", "password123", "Zurich", LocalDateTime.now());
         Usuario usuario2 = new Usuario(2L, "Jane Smith", "jane@example.com", "password456", "Geneva", LocalDateTime.now());
         Long id = 1L;
+        
+        // La entrada no belongs a usuario2, así que findFirstByIdAndUsuarioId devuelve null
+        when(historialBusquedaRepository.findFirstByIdAndUsuarioId(eq(id), eq(usuario2.getId())))
+            .thenReturn(null);
 
-        // When
-        historialBusquedaService.eliminarEntrada(id, usuario2);
-
-        // Then
-        verify(historialBusquedaRepository).deleteByIdAndUsuario(id, usuario2);
-        // This test doesn't verify that nothing happens because the repository
-        // method just deletes if the record exists with matching user, otherwise it does nothing
+        // When & Then - Debería lanzar una excepción
+        assertThrows(RuntimeException.class, () -> {
+            historialBusquedaService.eliminarEntrada(id, usuario2);
+        });
+        
+        verify(historialBusquedaRepository).findFirstByIdAndUsuarioId(eq(id), eq(usuario2.getId()));
     }
 }
