@@ -6,6 +6,7 @@ import com.swissroute.swissroute.service.impl.CustomUserDetailsService;
 import com.swissroute.swissroute.util.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,6 +15,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/usuarios")
 @CrossOrigin(origins = "*")
@@ -42,7 +44,7 @@ public class AuthController {
         @Valid @RequestBody LoginRequest loginRequest
     ) {
         try {
-            System.out.println("=== LOGIN START ===");
+            log.info("=== LOGIN START ===");
 
             authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -51,7 +53,7 @@ public class AuthController {
                 )
             );
 
-            System.out.println("=== AUTH OK ===");
+            log.info("=== AUTH OK ===");
 
             UserDetails userDetails = userDetailsService.loadUserByUsername(
                 loginRequest.getEmail()
@@ -63,11 +65,11 @@ public class AuthController {
                 );
             }
 
-            System.out.println("=== USER DETAILS OK ===");
+            log.info("=== USER DETAILS OK ===");
 
             String jwt = jwtUtil.generateToken(userDetails);
 
-            System.out.println("=== JWT GENERATED ===");
+            log.info("=== JWT GENERATED ===");
 
             return ResponseEntity.ok(new LoginResponse(jwt));
         } catch (BadCredentialsException e) {

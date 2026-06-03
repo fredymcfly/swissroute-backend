@@ -2,14 +2,13 @@ package com.swissroute.swissroute.controller;
 
 
 
-import com.swissroute.swissroute.exception.Http400Exception;
+
 import com.swissroute.swissroute.service.TransportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 import com.swissroute.swissroute.dto.ConnectionDTO;
-import com.swissroute.swissroute.service.ConnectionService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;

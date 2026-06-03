@@ -1,6 +1,8 @@
 package com.swissroute.swissroute.config;
 
 import java.time.Duration;
+
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,6 +11,7 @@ import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 
+@Getter
 @Configuration
 public class WebClientConfig {
 
@@ -32,7 +35,4 @@ public class WebClientConfig {
             .build();
     }
 
-    public String getBaseUrl() {
-        return baseUrl;
-    }
 }

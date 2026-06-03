@@ -5,17 +5,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swissroute.swissroute.dto.ConnectionDTO;
 import com.swissroute.swissroute.dto.StationDTO;
 import com.swissroute.swissroute.dto.external.ExternalConnectionResponse;
+import com.swissroute.swissroute.entity.Usuario;
 import com.swissroute.swissroute.exception.ExternalApiException;
 import com.swissroute.swissroute.exception.Http400Exception;
 import com.swissroute.swissroute.exception.Http404Exception;
 import com.swissroute.swissroute.exception.Http500Exception;
 import com.swissroute.swissroute.mapper.ConnectionMapper;
+import com.swissroute.swissroute.repository.UsuarioRepository;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -23,8 +28,14 @@ public class TransportService {
 
     private final WebClient webClient;
 
-    public TransportService(WebClient webClient) {
+    private final HistorialBusquedaService historialBusquedaService;
+    
+    private final UsuarioRepository usuarioRepository;
+    
+    public TransportService(WebClient webClient, HistorialBusquedaService historialBusquedaService, UsuarioRepository usuarioRepository) {
         this.webClient = webClient;
+        this.historialBusquedaService = historialBusquedaService;
+        this.usuarioRepository = usuarioRepository;
     }
 
     public List<ConnectionDTO> getConnections(
@@ -33,7 +44,10 @@ public class TransportService {
             String date,
             String time,
             String transportations
-    ) {
+
+
+    )
+    {
         ExternalConnectionResponse response = webClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/connections")
@@ -45,7 +59,7 @@ public class TransportService {
                         .build())
                 .retrieve()
                 .onStatus(
-                        status -> status.isError(),
+                        HttpStatusCode::isError,
                         clientResponse -> {
                             throw new ExternalApiException("Error llamando a la API externa de conexiones");
                         }
@@ -57,18 +71,28 @@ public class TransportService {
             throw new ExternalApiException("La API externa no devolvió conexiones");
         }
 
-        return response.connections()
+        List<ConnectionDTO> conexiones = response.connections()
                 .stream()
                 .map(ConnectionMapper::toDTO)
                 .toList();
+
+        Usuario usuario = obtenerUsuarioAutenticado();
+
+        historialBusquedaService.guardarBusqueda(
+                 from,
+                 to,
+                 conexiones.size(),
+                 usuario
+         );
+
+
+        return conexiones;
     }
 
-    public Mono<List<StationDTO>> getLocations(String query) {
+    public List<StationDTO> getLocations(String query) {
 
         if (query == null || query.isBlank()) {
-            return Mono.error(
-                    new Http400Exception("El parámetro 'query' es obligatorio")
-            );
+            return Collections.emptyList();
         }
 
         return webClient
@@ -83,7 +107,7 @@ public class TransportService {
 
 
                 .onStatus(
-                        org.springframework.http.HttpStatusCode::is4xxClientError,
+                        HttpStatusCode::is4xxClientError,
                         response -> {
                             int code = response.statusCode().value();
 
@@ -101,7 +125,7 @@ public class TransportService {
 
 
                 .onStatus(
-                        org.springframework.http.HttpStatusCode::is5xxServerError,
+                        HttpStatusCode::is5xxServerError,
                         response -> Mono.error(
                                 new Http500Exception(
                                         "Servicio externo no disponible (503)"
@@ -111,7 +135,7 @@ public class TransportService {
 
 
                 .bodyToMono(String.class)
-                .map(this::mapToStations);
+                .map(this::mapToStations).block();
     }
 
     private List<StationDTO> mapToStations(String json) {
@@ -145,7 +169,7 @@ public class TransportService {
         return result;
     }
 
-    public Mono<List<StationDTO>> getLocationsByCoordinates(double x, double y) {
+    public List<StationDTO> getLocationsByCoordinates(double x, double y) {
         return webClient
                 .get()
                 .uri(uriBuilder ->
@@ -169,6 +193,16 @@ public class TransportService {
                         Mono.error(new Http500Exception("Servicio externo no disponible (503)"))
                 )
                 .bodyToMono(String.class)
-                .map(this::mapToStations);
+                .map(this::mapToStations).block();
+    }
+
+    private Usuario obtenerUsuarioAutenticado() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("No hay usuario autenticado");
+        }
+        String email = authentication.getName();
+        return usuarioRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
     }
 }

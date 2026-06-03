@@ -9,6 +9,10 @@ import java.util.List;
 
 public class ConnectionMapper {
 
+    private ConnectionMapper() {
+        /* This utility class should not be instantiated */
+    }
+
     public static ConnectionDTO toDTO(ExternalConnection connection) {
         List<SectionDTO> secciones = connection.sections() == null
                 ? List.of()

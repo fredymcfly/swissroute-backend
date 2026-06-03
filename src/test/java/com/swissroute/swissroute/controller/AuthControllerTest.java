@@ -3,6 +3,9 @@ package com.swissroute.swissroute.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swissroute.swissroute.dto.LoginRequest;
 import com.swissroute.swissroute.entity.Usuario;
+import com.swissroute.swissroute.repository.EstacionFavoritaRepository;
+import com.swissroute.swissroute.repository.HistorialBusquedaRepository;
+import com.swissroute.swissroute.repository.RutaFavoritaRepository;
 import com.swissroute.swissroute.repository.UsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,9 +35,22 @@ class AuthControllerTest {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
+    @Autowired
+    private HistorialBusquedaRepository historialBusquedaRepository;
+
+    @Autowired
+    private RutaFavoritaRepository rutaFavoritaRepository;
+
+    @Autowired
+    private EstacionFavoritaRepository estacionFavoritaRepository;
+
     @BeforeEach
     void setUp() {
-        // Clean up test data
+        // Clean up test data in correct order to respect FK constraints:
+        // historial_busquedas -> rutas_favoritas -> estaciones_favoritas -> usuarios
+        historialBusquedaRepository.deleteAll();
+        rutaFavoritaRepository.deleteAll();
+        estacionFavoritaRepository.deleteAll();
         usuarioRepository.deleteAll();
         
         // Create a test user
