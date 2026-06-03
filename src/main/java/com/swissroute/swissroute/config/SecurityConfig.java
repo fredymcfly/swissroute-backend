@@ -77,7 +77,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/estaciones/**",
                                 "/api/conexiones/**",
-                                "/api/historial/**"
+                                "/api/historial/**",
+                                "/api/rutas-favoritas/**"
                         ).authenticated()
 
                         // Any other request
